@@ -1,4 +1,5 @@
 #include <Servo.h>
+#include <stdbool.h>
 Servo servoL;
 Servo servoR;
 
@@ -11,15 +12,17 @@ int IRvalR;
 
 // int LEDpin = 10;
 
-int threshL = 1020;
-int threshR = 0;
+int threshL = 600;
+int threshR = 100;
 
 
 
 void forward()
 {
-  servoL.writeMicroseconds(700);
-  servoR.writeMicroseconds(2300);
+  // delay(10);
+  servoL.writeMicroseconds(1600);
+  servoR.writeMicroseconds(1400);
+  // delay(20);
 }
 
 void backward(double seconds)
@@ -33,15 +36,16 @@ void backward(double seconds)
 
 void pivotLeft()
 {
-  servoL.writeMicroseconds(1500);
-  servoR.writeMicroseconds(800);
+  servoL.writeMicroseconds(1400);
+  servoR.writeMicroseconds(1500);
+  delay(20);
 }
 
 void pivotRight()
 {
-  servoL.writeMicroseconds(2200);
-  servoR.writeMicroseconds(1500);
-  stop(0.5);
+  servoL.writeMicroseconds(1500);
+  servoR.writeMicroseconds(1600);
+  delay(20);
 }
 
 void sweepRight(double seconds)
@@ -78,44 +82,47 @@ void setup() {
 void loop() {
   IRvalL = analogRead(/*Analog pin for left IR sensor*/ A4);
   IRvalR = analogRead(/*Analog pin for right IR sensor*/A5);
-  delay(20);  
-  Serial.println("LEFT VAL");
-  Serial.println(IRvalL);      
+  delay(40);  
+  // Serial.println("LEFT VAL");
+  // Serial.println(IRvalL); 
+
+
   if (IRvalL < threshL){
-    Serial.println("LEFT White");
+    Serial.println("LEFT WHITE");
+
       }
   else {
-    Serial.println("LEFT Black");
+    Serial.println("LEFT BLACK");
   }
 
-  Serial.println("RIGHT VAL");
-  Serial.println(IRvalR); 
+  // Serial.println("RIGHT VAL");
+  // Serial.println(IRvalR); 
   
   if(IRvalR < threshR){
-    Serial.println("RIGHT White");
+    Serial.println("RIGHT WHITE");
       }
   else {
-    Serial.println("RIGHT Black");
+    Serial.println("RIGHT BLACK");
   }
 
-  while(IRvalR < threshL && IRvalR < threshR)
+  if(IRvalR < threshL && IRvalR < threshR)
   {
     forward();
-    IRvalL = analogRead(/*Analog pin for left IR sensor*/ A4);
-    IRvalR = analogRead(/*Analog pin for right IR sensor*/A5);
+    // IRvalL = analogRead(/*Analog pin for left IR sensor*/ A4);
+    // IRvalR = analogRead(/*Analog pin for right IR sensor*/A5);
 
   }
 
-  while(IRvalL < threshL)
+  else if(IRvalL < threshL)
    {
      pivotRight();
-       IRvalL = analogRead(/*Analog pin for left IR sensor*/ A4);
+    //  IRvalL = analogRead(/*Analog pin for left IR sensor*/ A4);
    }
 
-   while(IRvalR < threshR)
+   else if(IRvalR < threshR)
  {
     pivotLeft();
-     IRvalR = analogRead(/*Analog pin for right IR sensor*/A5);
+    //  IRvalR = analogRead(/*Analog pin for right IR sensor*/A5);
   }
 
 }
