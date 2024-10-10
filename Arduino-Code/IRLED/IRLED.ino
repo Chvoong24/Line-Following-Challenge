@@ -12,8 +12,12 @@ int IRvalR;
 
 // int LEDpin = 10;
 
-int threshL = 600;
-int threshR = 100;
+int threshL = 820;
+int threshR = 400;
+
+bool whiteLeft = false;
+bool whiteRight = false;
+
 
 
 
@@ -36,32 +40,28 @@ void backward(double seconds)
 
 void pivotLeft()
 {
-  servoL.writeMicroseconds(1400);
+  servoL.writeMicroseconds(1450);
   servoR.writeMicroseconds(1500);
-  delay(20);
+  // delay(20);
 }
 
 void pivotRight()
 {
   servoL.writeMicroseconds(1500);
-  servoR.writeMicroseconds(1600);
-  delay(20);
+  servoR.writeMicroseconds(1550);
+  // delay(20);
 }
 
-void sweepRight(double seconds)
+void sweepRight()
 {
-  servoL.writeMicroseconds(2300);
-  servoR.writeMicroseconds(1000);
-  delay(seconds * 1000);
-  stop(0.5);
+  servoL.writeMicroseconds(1600);
+  servoR.writeMicroseconds(1550);
 }
 
-void sweepLeft(double seconds)
+void sweepLeft()
 {
-  servoL.writeMicroseconds(1700);
-  servoR.writeMicroseconds(700);
-  delay(seconds * 1000);
-  stop(0.5);
+  servoL.writeMicroseconds(1450);
+  servoR.writeMicroseconds(1400);
 }
 
 void stop(double seconds)
@@ -89,10 +89,11 @@ void loop() {
 
   if (IRvalL < threshL){
     Serial.println("LEFT WHITE");
-
+    whiteLeft = true;
       }
   else {
     Serial.println("LEFT BLACK");
+    whiteLeft = false;
   }
 
   // Serial.println("RIGHT VAL");
@@ -100,28 +101,26 @@ void loop() {
   
   if(IRvalR < threshR){
     Serial.println("RIGHT WHITE");
+    whiteRight = true;
       }
   else {
     Serial.println("RIGHT BLACK");
+    whiteRight = false;
   }
 
-  if(IRvalR < threshL && IRvalR < threshR)
+  if(whiteLeft == true && whiteRight == true)
   {
     forward();
-    // IRvalL = analogRead(/*Analog pin for left IR sensor*/ A4);
-    // IRvalR = analogRead(/*Analog pin for right IR sensor*/A5);
-
   }
-
-  else if(IRvalL < threshL)
+  else if(whiteLeft == false && whiteRight == true)
    {
-     pivotRight();
+     sweepLeft();
     //  IRvalL = analogRead(/*Analog pin for left IR sensor*/ A4);
    }
 
-   else if(IRvalR < threshR)
+   else if(whiteLeft == true && whiteRight == false)
  {
-    pivotLeft();
+    sweepRight();
     //  IRvalR = analogRead(/*Analog pin for right IR sensor*/A5);
   }
 
