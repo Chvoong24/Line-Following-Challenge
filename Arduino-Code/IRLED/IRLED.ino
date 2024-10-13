@@ -9,67 +9,59 @@ int servoRpin = 7;
 
 int IRvalL;
 int IRvalR;
+int photoSensorVal;
 
 // int LEDpin = 10;
 
-int threshL = 820;
-int threshR = 400;
+int threshL = 970;
+int threshR = 600;
+int threshMid = 80;
 
 bool whiteLeft = false;
 bool whiteRight = false;
+bool blackMiddle = true;
+
+bool oscillatingRight = true; 
 
 
-
-
-void forward()
-{
-  // delay(10);
-  servoL.writeMicroseconds(1550);
-  servoR.writeMicroseconds(1450);
-  // delay(20);
+// Movement functions for the robot
+void forward(int xDelay) {
+  servoL.writeMicroseconds(1700); 
+  servoR.writeMicroseconds(1300); 
+  delay(xDelay);
 }
 
-void backward(double seconds)
-{
-  servoL.writeMicroseconds(2300);
-  servoR.writeMicroseconds(700);
-  delay(seconds * 1000);
-  stop(0.5);
+void pivotLeft(int xDelay) {
+  servoL.writeMicroseconds(1500); 
+  servoR.writeMicroseconds(1100); 
+  delay(xDelay);
 }
 
-
-void pivotLeft()
-{
-  servoL.writeMicroseconds(1420);
-  servoR.writeMicroseconds(1500);
-  // delay(20);
+void pivotRight(int xDelay) {
+  servoL.writeMicroseconds(1700);
+  servoR.writeMicroseconds(1800); 
+  delay(xDelay);
 }
 
-void pivotRight()
-{
-  servoL.writeMicroseconds(1500);
-  servoR.writeMicroseconds(1550);
-  // delay(20);
-}
-
-void sweepRight()
-{
+void sweepRight(int xDelay) {
   servoL.writeMicroseconds(1650);
-  servoR.writeMicroseconds(1460);
+  servoR.writeMicroseconds(1400); 
+  delay(xDelay);
 }
 
-void sweepLeft()
-{
-  servoL.writeMicroseconds(1530);
-  servoR.writeMicroseconds(1400);
+void sweepLeft(int xDelay) {
+  
+  servoL.writeMicroseconds(1500);
+  servoR.writeMicroseconds(1300);
+  delay(xDelay);
 }
 
-void stop(double seconds)
-{
+void stop(int xDelay) {
   servoL.writeMicroseconds(1500);
   servoR.writeMicroseconds(1500);
-  delay(seconds * 1000);
+  delay(xDelay);
 }
+
 
 
 void setup() {
@@ -80,12 +72,10 @@ void setup() {
 }
 
 void loop() {
-  IRvalL = analogRead(/*Analog pin for left IR sensor*/ A4);
-  IRvalR = analogRead(/*Analog pin for right IR sensor*/A5);
-  delay(40);  
-  // Serial.println("LEFT VAL");
-  // Serial.println(IRvalL); 
-
+  IRvalL = analogRead(A0);
+  IRvalR = analogRead(A5);
+  photoSensorVal = analogRead(A4);
+ // Serial.println(IRvalL); 
 
   if (IRvalL < threshL){
     Serial.println("LEFT WHITE");
@@ -95,33 +85,75 @@ void loop() {
     Serial.println("LEFT BLACK");
     whiteLeft = false;
   }
-
-  // Serial.println("RIGHT VAL");
   // Serial.println(IRvalR); 
-  
+
+Serial.println(IRvalR);
   if(IRvalR < threshR){
     Serial.println("RIGHT WHITE");
     whiteRight = true;
       }
   else {
-    Serial.println("RIGHT BLACK");
+   Serial.println("RIGHT BLACK");
     whiteRight = false;
-  }
+     }
 
-  if(whiteLeft == true && whiteRight == true || whiteLeft == false && whiteRight == false)
+//Serial.println(photoSensorVal);
+
+  if(photoSensorVal > threshMid)
   {
-    forward();
+    Serial.println("Middle White");
+    blackMiddle = false;
   }
-  else if(whiteLeft == false && whiteRight == true)
-   {
-      sweepLeft();
-    // pivotLeft();
-   }
-
-   else if(whiteLeft == true && whiteRight == false)
- {
-    sweepRight();
-    // pivotRight();
+  else
+  {
+    Serial.println("Middle Black");
+    blackMiddle = true;
   }
 
+if (blackMiddle) {
+    // If the middle sensor detects black, oscillate between left and right
+    if (oscillatingRight) {
+      sweepRight(10);  // Shorter delay for faster oscillation
+      oscillatingRight = false;  // Next time, oscillate left
+    } else {
+      sweepLeft(10);   // Shorter delay for faster oscillation
+      oscillatingRight = true;   // Next time, oscillate right
+    }
+    forward(5); // Shorter forward movement for quicker oscillation
+  } else {
+    // If middle sensor detects white, correct course based on side sensors
+    if (!whiteLeft && whiteRight) {
+      pivotLeft(30);  // Pivot left to correct
+    } else if (whiteLeft && !whiteRight) {
+      pivotRight(30); // Pivot right to correct
+    } else {
+      stop(30);  // If unsure, stop and re-evaluate
+    }
+  }
+
+
+//  // Adjust robot's movement to ensure the middle sensor is always on black
+//   if (blackMiddle) {
+//     // If middle sensor is on black, adjust based on side sensors
+//     if (whiteLeft && whiteRight) {
+//       forward(30);  // Move straight if both sides are white and middle is black
+//     } else if (!whiteLeft && whiteRight) {
+//       sweepLeft(30);  // If left is on black and right on white, adjust left
+//     } else if (whiteLeft && !whiteRight) {
+//       sweepRight(30);  // If right is on black and left on white, adjust right
+//     } else {
+//       forward(30);  // Default to moving forward if middle is on black
+//     }
+//   } else {
+//     // If middle sensor is not on black, make adjustments to correct course
+//     if (!whiteLeft && whiteRight) {
+//       pivotLeft(30);  // If left is black, pivot left to get back on the line
+//     } else if (whiteLeft && !whiteRight) {
+//       pivotRight(30); // If right is black, pivot right to get back on the line
+//     } else {
+//       stop(30);       // If no clear direction, stop and re-evaluate
+//     }
+//   }
+
+  
 }
